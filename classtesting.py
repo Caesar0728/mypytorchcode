@@ -215,3 +215,86 @@ date2.out2()
 #         # 将索引列表转换为token列表（也就是根据编码、找到相应的token）
 #
 #         return [self.idx_to_token[index] for index in indices]
+
+
+####### PART IV #######
+from collections import defaultdict, Counter
+
+
+class Vocab:
+    """
+    可以同时接纳Token和text两种类型的数据
+    对原始文字数据，调用build方法，进行分词、并完成词频筛选
+    对Token数据，使用init中的流程，完成添加未知词、词汇表构建并根据词汇表进行编码
+    建好词汇表后，再调用单独的方法来进行编码
+    """
+
+    def __init__(self, tokens=None):
+        # init的输入参数是Token
+        # 注意！这里的Token要求是一个【包含所有token的list】
+        # 也就是这个列表里只能有token本身，不能再包含其他内容或者其他层次
+        # 比如，一个list中包含了多个句子，每个句子都是按照token的方式排列的
+        # 那这个list就不属于【包含所有token的list】，而是包含句子的list
+
+        # 构建两个变量，一个idx_to_token，一个是token_to_idx
+        # idx_to_token是列表，包含了数据集中所有的单词
+        # token_to_idx是词汇表，是不重复的单词 + 索引构成的结果
+        self.idx_to_token = list()
+        self.token_to_idx = dict()
+
+        # 如果输入了tokens（Tokens不为None）
+        # 就直接进行未知词操作
+
+        if tokens is not None:
+            # 如果tokens中不包含"<unk>"这个词（未知词），则添加"<unk>"
+            if "<unk>" not in tokens:
+                tokens = tokens + ["<unk>"]
+            # 遍历tokens，将每个token添加到idx_to_token列表，并在token_to_idx字典中映射其索引
+            # 基于添加了未知词的Tokens，直接创造出列表 + 词汇表
+            for token in tokens:
+                self.idx_to_token.append(token)
+                self.token_to_idx[token] = len(self.idx_to_token) - 1
+            # 设置未知词的索引，将未知的词设置为一个单独的属性self.unk
+            self.unk = self.token_to_idx['<unk>']
+
+    # 调用魔法命令classmethod，这个命令允许我们在不进行实例化的情况下使用类中的方法
+    # build的输入参数与Vocab本身的init完全不同，因此我们可以运行它被单独调用
+    @classmethod
+    def build(cls, text, min_freq=1, reserved_tokens=None):
+        # build，此时输入的参数有4个
+        # cls是Vocab这个类本身，这魔法命令classmethod的要求
+        # 有了cls就可以在不进行实例化的情况下直接调用build功能
+        # text是需要构建词汇表和词典的文本，在这个文本上我们可以直接开始进行词频筛选
+        # 注意！这个文本的范围很广泛，只要不是单一token list，都可以被认为是文本（见下面的详细说明）
+        # min_freq是我们用于筛选的最小频率，低于该频率阈值的词会被删除
+        # reserved_token是我们可以选择性输入的"通用词汇表"，假设text本身太短词太少的话
+        # reserved_token可以帮助我们构建更大的词典、从而构建更大的词向量空间
+        # 以上4个参数中只有text是必填的
+
+        # 创建一个defaultdict字典，用于统计每个单词的出现频率
+        token_freqs = defaultdict(int)
+        # 遍历文本中的每个句子，统计每个单词的出现次数
+        # 其中，单词使用变量token来代表
+        for sentence in text:
+            for token in sentence:
+                # 不断保存到字典中的是——
+                # 以token（词本身）作为键、词出现的频率作为值的键值对
+                token_freqs[token] += 1
+
+        # 创建一个空列表uniq_tokens，用于存储"<unk>"和输入用来保底的reserved_tokens
+        uniq_tokens = ["<unk>"] + (reserved_tokens if reserved_tokens else [])
+
+        # 将token_freqs中保存的词和词频进行循环
+        # 除了"<unk>"之外，过滤掉出现次数少于min_freq的词
+        # 并将没有被过滤掉的词打包到一个列表中
+        # 这个列表uniq_tokens就是过滤后的Tokens列表
+        uniq_tokens += [token for token, freq in token_freqs.items() if freq >= min_freq and token != "<unk>"]
+        # 将过滤后的Tokens列表放入cls，也就是Vocab类中
+        # 这个Token进入到Vocab类之后，会触发init，开始进入init中的流程
+        # 因此，只要调用build方法，就可以从text构建一组token、并将这组token放入Vocab类
+        # 这是这个类的“递归”所在，我们可以调用类中的方法来创造类所需的数据类型
+        # 并在该方法的最后重启这个类
+        return cls(uniq_tokens)
+
+        ####### 重点重点重点 #######
+        # 这里是丢一个uniq_tokens的列表进行进行实例化， __init__的间接调用， 即__init__(uniq_tokens)， 并生成一个object
