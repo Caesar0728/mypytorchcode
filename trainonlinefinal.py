@@ -221,6 +221,8 @@ def train_model(configuration):
     print(f"Using device {device}")
 
     # Make sure the weights folder exists
+    # here we need to have the smae path name as in configuration class, they have to align with each other
+    # {configuration['datasource']}_{configuration['model_folder']}
     Path(f"{configuration['datasource']}_{configuration['model_folder']}").mkdir(parents=True, exist_ok=True)
 
     # step 3 get_ds
