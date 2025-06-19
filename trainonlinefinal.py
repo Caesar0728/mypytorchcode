@@ -56,6 +56,10 @@ def get_ds(configuration):
     dataset_raw = load_dataset(path=f"{configuration['datasource']}",
                                name=f"{configuration['lang_src']}-{configuration['lang_tgt']}",
                                split='train')
+    # need to fill in XXXXX for the data path
+    # data_files = f"D:/Users/XXXXX/{configuration['datasource']}/{configuration['lang_src']}-{configuration['lang_tgt']}/*"
+    # dataset_raw = load_dataset("parquet", data_files=data_files, split='train')
+
 
     # Keep 90% for training, 10% for validation
     train_dataset_size = int(0.9 * len(dataset_raw))
