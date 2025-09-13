@@ -5,7 +5,7 @@ from configuration import get_config, get_weights_file_path, latest_weights_file
 import torchtext.datasets as datasets
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader, random_split
+from torch.utils.data import Dataset, DataLoader, random_split, TensorDataset
 from torch.optim.lr_scheduler import LambdaLR
 
 import warnings
@@ -38,7 +38,7 @@ def get_or_build_tokenizer(configuration, dataset, language):
     if not Path.exists(tokenizer_path):
 
         tokenizer = Tokenizer(WordLevel(unk_token="[UNK]"))
-        tokenizer.pre_tokenizer = Whitespace()
+        tokenizer.pre_tokenizers = Whitespace()
         trainer = WordLevelTrainer(special_tokens=["[UNK]", "[PAD]", "[SOS]", "[EOS]"], min_frequency=2)
         tokenizer.train_from_iterator(get_all_sentences(dataset, language), trainer=trainer)
         tokenizer.save(str(tokenizer_path))
