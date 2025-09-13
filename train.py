@@ -40,7 +40,7 @@ def get_or_build_tokenizer(configuration, dataset, language):
     if not Path.exists(tokenizer_path):
         # 这里要参考tokenizers_lib这个自建类说明会更清晰一些
         tokenizer = Tokenizer(WordLevel(unk_token="[UNK]"))
-        tokenizer.pre_tokenizer = Whitespace()
+        tokenizer.pre_tokenizers = Whitespace()
         trainer = WordLevelTrainer(special_tokens=["[UNK]", "[PAD]", "[SOS]", "[EOS]"], min_frequency=2)
         tokenizer.train_from_iterator(get_all_sentences(dataset, language), trainer=trainer)
 
