@@ -64,6 +64,9 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('pe', pe)
 
     def forward(self, x):
+        # and here we also tell the model that we dont want to learn the positional encoding, because they are fixed
+        # they will be always the same and they will not be leart during the whole training process
+        # so we will use requires_grad_(False), this will make this self.pe[:, :x.shape[1], :] whole thing not learnt
         x = x + (self.pe[:, :x.shape[1], :]).requires_grad_(False)  # (batch, seq_len, d_model)
 
         return self.dropout(x)
