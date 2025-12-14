@@ -17,7 +17,7 @@ from tqdm import tqdm
 from pathlib import Path
 
 
-def get_all_sentences(dataset, language):
+def get_all_sentences_old(dataset, language):
 
     # 在train_from_iterator中需要用iterator因此用了yield
     for item in dataset:
@@ -27,6 +27,20 @@ def get_all_sentences(dataset, language):
         # 因此这里还要再套一个[language]的key才能得到，这门语言的句子
 
         yield item['translation'][language]
+
+
+def get_all_sentences(dataset, language):
+    for item in dataset:
+        # 因为这里的dataset是一个字典， 这个字典有两个keys， 一个是id， 另一个是translation
+        # 而translation这个key对应的value还是一个字典， 这个字典又包含两个keys
+        # 一个key是一门语言， 如 'en'； 另外一个key也是一门语言， 如'it'
+        # 因此这里还要再套一个[language]的key才能得到，这门语言的句子
+        
+        # 确保获取正确的字段
+        if 'translation' in item and language in item['translation']:
+            text = item['translation'][language]
+            if isinstance(text, str) and text.strip():  # 确保是有效字符串
+                yield text
 
 
 def get_or_build_tokenizer(configuration, dataset, language):
@@ -40,7 +54,7 @@ def get_or_build_tokenizer(configuration, dataset, language):
     if not Path.exists(tokenizer_path):
         # 这里要参考tokenizers_lib这个自建类说明会更清晰一些
         tokenizer = Tokenizer(WordLevel(unk_token="[UNK]"))
-        tokenizer.pre_tokenizers = Whitespace()
+        tokenizer.pre_tokenizer = Whitespace()  # 这里是tokenizer.pre_tokenizer 而不是原来的tokenizer.pre_tokenizers, 没有‘s’
         trainer = WordLevelTrainer(special_tokens=["[UNK]", "[PAD]", "[SOS]", "[EOS]"], min_frequency=2)
         tokenizer.train_from_iterator(get_all_sentences(dataset, language), trainer=trainer)
 
