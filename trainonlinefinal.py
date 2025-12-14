@@ -24,11 +24,20 @@ import torchmetrics
 from torch.utils.tensorboard import SummaryWriter
 
 
-def get_all_sentences(dataset, language):
+def get_all_sentences_old(dataset, language):
 
     for item in dataset:
 
         yield item['translation'][language]
+
+
+def get_all_sentences(dataset, language):
+    for item in dataset:
+        # 确保获取正确的字段
+        if 'translation' in item and language in item['translation']:
+            text = item['translation'][language]
+            if isinstance(text, str) and text.strip():  # 确保是有效字符串
+                yield text
 
 
 def get_or_build_tokenizer(configuration, dataset, language):
@@ -38,7 +47,7 @@ def get_or_build_tokenizer(configuration, dataset, language):
     if not Path.exists(tokenizer_path):
 
         tokenizer = Tokenizer(WordLevel(unk_token="[UNK]"))
-        tokenizer.pre_tokenizers = Whitespace()
+        tokenizer.pre_tokenizer = Whitespace()
         trainer = WordLevelTrainer(special_tokens=["[UNK]", "[PAD]", "[SOS]", "[EOS]"], min_frequency=2)
         tokenizer.train_from_iterator(get_all_sentences(dataset, language), trainer=trainer)
         tokenizer.save(str(tokenizer_path))
