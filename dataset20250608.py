@@ -134,8 +134,8 @@ class BilingualDataset(Dataset):
         # Add only </s> token
         # 这部分相当于是我们视频里的target_real
         # dec_input_tokens
-        # padding_tokens 有可能有的padding项
         # eos
+        # padding_tokens 有可能有的padding项
 
         # label的shape为 torch.Size([seq_len])
         label = torch.cat(
