@@ -244,6 +244,11 @@ def greedy_decode(model, encoder_input, encoder_mask, tokenizer_src, tokenizer_t
 
         # prob已经是最后一个单词的概率分布了，
         # 所以prob的shape 是 1 * tgt_vocab_size了， 所以下面的dim是用1
+
+        # 这里其实是对decoder_output[:, -1, :]进行project的操作
+        # 而decoder_output[:, -1, :] 的维度是 (batch_size=1, d_model), 这里做了切片操作, 所以维度不是(batch_size=1, 1, d_model)
+        # 因此在下面计算torch.max的时候, 虽然写的是dim=1, 实际上还是在tgt_vocab_size这个维度上找最大值的index, 
+        # 最好的写法还是_, next_word = torch.max(prob, dim=-1)
         _, next_word = torch.max(prob, dim=1)
 
         decoder_input = torch.cat(
