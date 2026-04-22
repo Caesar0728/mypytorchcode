@@ -148,9 +148,14 @@ def greedy_decode(model, encoder_input, encoder_mask, tokenizer_src, tokenizer_t
 
         # calculate output
         decoder_output = model.decode(decoder_input, encoder_output, encoder_mask, decoder_mask)
-
+        # 这里decoder_output的维度是(batch_size=1, seq_len, d_model)
+        
         # get next token
-        prob = model.project(decoder_output[:, -1])
+        prob = model.project(decoder_output[:, -1])  
+        # 这里其实是对decoder_output[:, -1, :]进行project的操作
+        # 而decoder_output[:, -1, :] 的维度是 (batch_size=1, d_model), 这里做了切片操作, 所以维度不是(batch_size=1, 1, d_model)
+        # 因此在下面计算torch.max的时候, 虽然写的是dim=1, 实际上还是在tgt_vocab_size这个维度上找最大值的index, 
+        # 最好的写法还是_, next_word = torch.max(prob, dim=-1)
         _, next_word = torch.max(prob, dim=1)
         decoder_input = torch.cat(
             [
