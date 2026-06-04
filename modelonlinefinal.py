@@ -363,7 +363,8 @@ class ProjectionLayer(nn.Module):
         # (batch, seq_len, d_model) --> (batch, seq_len, vocab_size)
         x = self.proj(x)
 
-        x = nn.functional.log_softmax(x, dim=-1)
+        # duplicated with nn.CrossEntropyLoss
+        # x = nn.functional.log_softmax(x, dim=-1)
 
         return x
 
