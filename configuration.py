@@ -46,5 +46,5 @@ def latest_weights_file_path(config):
     if len(weights_files) == 0:
         return None
     # 对这个列表排序， 然后取这个列表的最后一个元素， 就是最新的latest的文件了
-    weights_files.sort()
+    weights_files.sort(key=os.path.getmtime)
     return str(weights_files[-1])
